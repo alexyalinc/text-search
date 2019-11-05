@@ -1,0 +1,21 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    width: 40%;
+    margin: 100px auto;
+}
+
+.found {
+    background: #ffe16a;
+}
+
+#findInput {
+    width: 100%;
+    padding: 10px;
+}
+
+.find-this {
+    text-align: justify;
+}
