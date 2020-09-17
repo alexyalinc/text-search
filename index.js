@@ -1,49 +1,75 @@
-class FindInput {
-    constructor(input, className) {
-        //Register global variables
-        this.input = input;
-        this.className = className;
-        //Save contents to variables
-        this.getContents();
-        //Add event to input
-        this.addEvent();
-    }
-
-    //Add event to input search
-    addEvent() {
-        this.input.addEventListener('input', e => this.eventFind(e));
-    }
-
-    //Event function
-    eventFind(e) {
-        const searchText = e.target.value;
-        for(let i=0; i < this.contentsElements.length; i++) {
-            let htmlContent = this.defaultHtmlContents[i];
-            //if text empty
-            if(searchText.length === 0) {
-                this.contentsElements[i].innerHTML = htmlContent;
-                continue;
-            }
-            const regExp = new RegExp(searchText,'img');
-            const replaceHtmlFunction = (text) => `<span class="found">${text}</span>`;
-
-            this.contentsElements[i].innerHTML = htmlContent.replace(regExp, replaceHtmlFunction);
-        }
-    }
-
-    getContents() {
-        this.defaultHtmlContents = [];
-        //get elements by class name
-        this.contentsElements = document.getElementsByClassName(this.className);
-        for(const content of this.contentsElements) {
-            //save default inner html
-            this.defaultHtmlContents.push(content.innerHTML);
-        }
-    }
-
+/**
+ * Find in text
+ * @example
+ * // returns 2
+ * initFinder({
+ * input // html input element
+ * className // class name of text for search
+ * replaceFunc, // replacement of found text
+ * flags: 'img', // regexp flag
+ * })
+ */
+function initFinder(opts) {
+  // configure opts
+  opts = configOpts(opts);
+  // add event to input
+  opts.input.addEventListener('input', (e) => eventFind(e, opts));
 }
 
-const input = document.getElementById('findInput');
+/**
+ * Get elements and backup html
+ * @param {string} className
+ * @returns {Array<any>} [html, elements]
+ */
+function getHtmlContents(className) {
+  elements = Array.from(document.getElementsByClassName(className));
+  return [elements.map((el) => el.innerHTML), elements];
+}
 
-//init script
-new FindInput(input, 'find-this');
+/**
+ * Get elements and backup html
+ * @param {string} search
+ * @returns {string} `<span class="found">${text}</span>`
+ */
+function replaceFunc(search) {
+  return `<span class="found">${search}</span>`;
+}
+
+function configOpts(opts) {
+  // required options
+  if (opts.input == undefined) {
+    throw new Error('Required property "input"');
+  }
+  if (opts.className == undefined) {
+    throw new Error('Required property "className"');
+  }
+  // default options
+  opts = Object.assign(
+    {
+      replaceFunc,
+      flags: 'img',
+    },
+    opts
+  );
+  // backup html and pointer to elements dom
+  [opts.html, opts.elements] = getHtmlContents(opts.className);
+  return opts;
+}
+
+function eventFind(e, opts) {
+  for (const [i, el] of opts.elements.entries()) {
+    const defaultHtml = opts.html[i];
+    if (e.target.value.length === 0) {
+      el.innerHTML = defaultHtml;
+      continue;
+    }
+    const regExp = new RegExp(e.target.value, opts.flags);
+    el.innerHTML = defaultHtml.replace(regExp, opts.replaceFunc);
+  }
+}
+
+// init script
+initFinder({
+  input: document.getElementById('findInput'),
+  className: 'find-this',
+});
